@@ -145,7 +145,7 @@ EXTRAAUTHENTICATORS=
 # mbox	if file "mbox" exists on the home directory, automatically moves mail
 #	 from the spool directory to "mbox" and uses "mbox" as INBOX.
 
-EXTRADRIVERS=mbox
+EXTRADRIVERS=
 
 
 # Plaintext password type.  Defines how plaintext password authentication is
@@ -180,7 +180,7 @@ PASSWDTYPE=std
 #
 # SSLTYPE=nopwd is now the default as required by RFC 3501
 
-SSLTYPE=nopwd
+SSLTYPE=unix
 
 
 # IP protocol version
@@ -190,7 +190,7 @@ SSLTYPE=nopwd
 # 4	(default) IPv4 support only
 # 6	IPv6 and IPv4 support
 
-IP=4
+IP=6
 IP6=6
 
 
@@ -294,7 +294,7 @@ BUILD=$(MAKE) build EXTRACFLAGS='$(EXTRACFLAGS)'\
 
 # Make the IMAP Toolkit
 
-all:	c-client SPECIALS rebuild bundled
+all:	slx c-client SPECIALS rebuild
 
 c-client:
 	@echo Not processed yet.  In a first-time build, you must specify
@@ -580,7 +580,6 @@ sslunix sslsco:
 	@echo +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	@echo
 	@echo Do you want to continue this build anyway?  Type y or n please:
-	@$(SH) -c 'read x; case "$$x" in y) exit 0;; *) (make nounenc;exit 1);; esac'
 
 nounenc:
 	@echo +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -678,7 +677,7 @@ an ua:
 	$(TOOLS)/$@ "$(LN)" src/tmail tmail
 	$(LN) $(TOOLS)/$@ .
 
-build:	OSTYPE rebuild rebuildclean bundled
+build:	OSTYPE rebuild rebuildclean
 
 OSTYPE:
 	@$(MAKE) ip$(IP)
@@ -698,7 +697,7 @@ rebuild:
 	@$(SH) -c '(test $(BUILDTYPE) = rebuild -o $(BUILDTYPE) = `$(CAT) OSTYPE`) || (echo Already built for `$(CAT) OSTYPE` -- you must do \"make clean\" first && exit 1)'
 	@echo Rebuilding c-client for `$(CAT) OSTYPE`...
 	@$(TOUCH) SPECIALS
-	$(CD) c-client;$(MAKE) all CC=`$(CAT) CCTYPE` \
+	$(CD) c-client;$(MAKE) all CC="`$(CAT) CCTYPE`" \
 	 CFLAGS="`$(CAT) CFLAGS`" `$(CAT) SPECIALS`
 
 rebuildclean:

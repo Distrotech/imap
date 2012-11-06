@@ -26,11 +26,13 @@
 
 # Command line build parameters
 
+SHLIBBASE=c-client
+SHLIBNAME=lib$(SHLIBBASE).so.1
 EXTRAAUTHENTICATORS=
-EXTRADRIVERS=mbox
+EXTRADRIVERS=
 PASSWDTYPE=std
-SSLTYPE=nopwd
-IP=4
+SSLTYPE=unix
+IP=6
 
 
 # The optimization level here for GCC ports is set here for a reason.  It's
@@ -54,11 +56,11 @@ GCC4CFLAGS= $(GCCCFLAGS) -Wno-pointer-sign
 
 # Extended flags needed for SSL.  You may need to modify.
 
-SSLDIR=/usr/local/ssl
+SSLDIR=/etc/openssl
 SSLCERTS=$(SSLDIR)/certs
 SSLKEYS=$(SSLCERTS)
-SSLINCLUDE=$(SSLDIR)/include
-SSLLIB=$(SSLDIR)/lib
+SSLINCLUDE=/usr/include
+SSLLIB=/usr/lib
 
 SSLCRYPTO=-lcrypto
 
@@ -97,10 +99,10 @@ LOGINPW=std
 SIGTYPE=bsd
 CRXTYPE=std
 ACTIVEFILE=/usr/lib/news/active
-SPOOLDIR=/usr/spool
+SPOOLDIR=/var/spool
 MAILSPOOL=$(SPOOLDIR)/mail
 NEWSSPOOL=$(SPOOLDIR)/news
-RSHPATH=/usr/ucb/rsh
+RSHPATH=/usr/bin/rsh
 MD5PWD=/etc/cram-md5.pwd
 # Tries one of the test alternatives below if not specified.
 LOCKPGM=
@@ -134,6 +136,8 @@ CC=cc
 LN=ln -s
 RANLIB=ranlib
 
+# Need this for the shared library rule to work correctly
+SOFILES=${BINARIES:.o=.so}
 
 # Standard distribution build parameters
 
@@ -853,14 +857,24 @@ vu2:	# VAX Ultrix 2.3, etc.
 
 # Build it!
 
-build:	clean once $(ARCHIVE)
+build:	clean once $(ARCHIVE) $(SHLIBNAME)
 
-all:	$(ARCHIVE)
+all:	$(ARCHIVE) $(SHLIBNAME)
 
 $(ARCHIVE): $(BINARIES)
 	sh -c '$(RM) $(ARCHIVE) || true'
 	@$(CAT) ARCHIVE
 	@$(SH) ARCHIVE
+
+$(SHLIBNAME):	$(SOFILES)
+	$(CC) -shared -Wl,-soname,$(SHLIBNAME) -o $(SHLIBNAME) $(SOFILES) `cat LDFLAGS`
+	ln -s $(SHLIBNAME) lib$(SHLIBBASE).so
+
+.c.so:	osdep.h
+	$(CC) -fPIC -DPIC -c `$(CAT) CFLAGS` ${@:.so=.c} -o $@
+
+osdep.so:	$(OSDEPS)
+	$(CC) -fPIC -DPIC -c $(CFLAGS) `cat OSCFLAGS` osdep.c -o $@
 
 .c.o:
 	`$(CAT) CCTYPE` -c `$(CAT) CFLAGS` $*.c
