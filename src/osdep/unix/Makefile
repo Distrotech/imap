@@ -59,7 +59,7 @@ GCC4CFLAGS= $(GCCCFLAGS) -Wno-pointer-sign
 SSLDIR=/etc/openssl
 SSLCERTS=$(SSLDIR)/certs
 SSLKEYS=$(SSLCERTS)
-SSLINCLUDE=/usr/include
+SSLINCLUDE=$(SYSROOT)/usr/include
 SSLLIB=/usr/lib
 
 SSLCRYPTO=-lcrypto
@@ -137,6 +137,7 @@ LN=ln -s
 RANLIB=ranlib
 
 # Need this for the shared library rule to work correctly
+.SUFFIXES: .o .so
 SOFILES=${BINARIES:.o=.so}
 
 # Standard distribution build parameters
@@ -867,7 +868,7 @@ $(ARCHIVE): $(BINARIES)
 	@$(SH) ARCHIVE
 
 $(SHLIBNAME):	$(SOFILES)
-	$(CC) -shared -Wl,-soname,$(SHLIBNAME) -o $(SHLIBNAME) $(SOFILES) `cat LDFLAGS`
+	$(CC) -shared -Wl,-soname,$(SHLIBNAME) -o $(SHLIBNAME) $(SOFILES) -L${SYSROOT}/usr/lib `cat LDFLAGS`
 	ln -s $(SHLIBNAME) lib$(SHLIBBASE).so
 
 .c.so:	osdep.h
@@ -918,7 +919,7 @@ utf8aux.o: mail.h misc.h osdep.h utf8.h
 
 # OS-dependent
 
-osdep.o:mail.h misc.h env.h fs.h ftl.h nl.h tcp.h \
+OSDEPS= mail.h misc.h env.h fs.h ftl.h nl.h tcp.h \
 	osdep.h env_unix.h tcp_unix.h \
 	osdep.c env_unix.c fs_unix.c ftl_unix.c nl_unix.c tcp_unix.c ip_unix.c\
 	auths.c crexcl.c flockcyg.c flocklnx.c flocksim.c fsync.c \
@@ -932,6 +933,8 @@ osdep.o:mail.h misc.h env.h fs.h ftl.h nl.h tcp.h \
 	write.c sslstdio.c \
 	strerror.c strpbrk.c strstr.c strtok.c strtoul.c \
 	OSCFLAGS
+
+osdep.o:	$(OSDEPS)
 	@echo Building OS-dependent module
 	@echo If you get No such file error messages for files x509.h, ssl.h,
 	@echo pem.h, buffer.h, bio.h, and crypto.h, that means that OpenSSL
