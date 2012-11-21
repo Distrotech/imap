@@ -732,6 +732,7 @@ clean:
 
 install: all
 	ginstall -D c-client/libc-client.so.1 $(DESTDIR)/usr/lib/libc-client.so.1
+	ln -s libc-client.so.1 $(DESTDIR)/usr/lib/libc-client.so || true
 	ginstall -D c-client/c-client.a $(DESTDIR)/usr/lib/libc-client.a
 	install -v -d $(DESTDIR)/usr/include/imap
 	install -v -m 644 ./c-client/*.h $(DESTDIR)/usr/include/imap
